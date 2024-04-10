@@ -8,4 +8,4 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ../code:/code
+      - ../code:/home/dave/code
