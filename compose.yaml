@@ -5,7 +5,19 @@ services:
       target: final
     container_name: devenv
     entrypoint: /bin/bash
+    ports:
+      - 8888:8888
+    secrets:
+      - source: github_personal_access_token
+        uid: "1000"
+        gid: "1000"
     stdin_open: true
     tty: true
+    user: dave
     volumes:
+      - ~/.ssh:/home/dave/.ssh
       - ../code:/home/dave/code
+
+secrets:
+  github_personal_access_token:
+    environment: GH_TOKEN

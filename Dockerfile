@@ -3,37 +3,48 @@ FROM ubuntu:22.04 as base
 FROM base as build
 RUN apt-get update && apt-get install -y \
   build-essential \
-  curl \
   git \
-  unzip \
   wget
 
+# Build Neovim from source
 FROM build as neovim
 RUN apt-get install -y ninja-build gettext cmake unzip
 RUN git clone --depth 1 --branch v0.9.5 https://github.com/neovim/neovim.git
-RUN cd neovim && make CMAKE_BUILD_TYPE=Release && make install
-
-# Prebuilt treesitter parsers to potentially save image build time/space
-# FROM build as treesitter
-# RUN wget https://github.com/anasrar/nvim-treesitter-parser-bin/releases/download/linux/all.zip
-# RUN unzip -j all.zip python.so lua.so
+RUN cd neovim && make CMAKE_BUILD_TYPE=Release  && make install DESTDIR=/nvim-install
 
 FROM base as final
-
-COPY --from=neovim /usr/local/bin /usr/local/bin
-COPY --from=neovim /usr/local/lib /usr/local/include
-COPY --from=neovim /usr/local/share /usr/local/share
-
 RUN apt-get update && apt-get install -y \
-  build-essential \
+  curl \
   git \
+  libomp-dev \
+  nodejs \
+  npm \
   python3.11 \
-  python3.11-venv \ 
-&& rm -rf /var/lib/apt/lists/*
+  python3.11-venv \
+  wget && \
+wget -O gh.deb \
+  https://github.com/cli/cli/releases/download/v2.47.0/gh_2.47.0_linux_amd64.deb && \
+  apt install ./gh.deb && \
+  rm gh.deb && \
+  rm -rf /var/lib/apt/lists/*
+RUN git config --system init.defaultBranch main
+# RUN curl -s https://get.modular.com | sh
+
 RUN useradd -ms /bin/bash dave
-USER dave
 WORKDIR /home/dave
-COPY nvim/ /home/dave/.config/nvim
+USER dave
+COPY --from=neovim /nvim-install/usr /usr
+
+RUN git config --global user.email "3943510+phueac@users.noreply.github.com"
+RUN git config --global user.name "Dave Edmunds"
+
+RUN git clone --recurse-submodules git@github.com:phueac/dotfiles.git ~/.dotfiles
+RUN cd ~/.dotfiles
+RUN ./install
+
+#COPY ./nvim /home/dave/.config/nvim
 RUN nvim --headless "+Lazy! sync" +qa
+#RUN modular install mojo
+#ENV PATH=/home/dave/.modular/pkg/packages.modular.com_mojo/bin:$PATH
 
 ENTRYPOINT bash
