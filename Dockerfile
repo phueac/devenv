@@ -16,7 +16,6 @@ FROM base as final
 RUN apt-get update && apt-get install -y \
   curl \
   git \
-  libomp-dev \
   nodejs \
   npm \
   python3.11 \
