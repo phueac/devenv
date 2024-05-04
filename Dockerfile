@@ -16,8 +16,6 @@ FROM base as final
 RUN apt-get update && apt-get install -y \
   curl \
   git \
-  nodejs \
-  npm \
   python3.11 \
   python3.11-venv \
   wget && \
@@ -27,8 +25,10 @@ wget -O gh.deb \
   rm gh.deb && \
   rm -rf /var/lib/apt/lists/*
 RUN git config --system init.defaultBranch main
+
 # RUN curl -s https://get.modular.com | sh
 
+# Create a non-root user
 RUN useradd -ms /bin/bash dave
 WORKDIR /home/dave
 USER dave
@@ -39,9 +39,9 @@ RUN git config --global user.name "Dave Edmunds"
 
 RUN --mount=type=secret,id=github_personal_access_token,uid=1000 PAT=$(cat /run/secrets/github_personal_access_token) && git clone https://$PAT@github.com/phueac/dotfiles.git .dotfiles && cd .dotfiles && ./install
 
-# RUN cd /home/dave/.dotfiles && ./install
+# Install nvm (Node version manager) and LTS version of NodeJS
+RUN PROFILE=/dev/null curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && bash -c "source ~/.nvm/nvm.sh && nvm install --lts && npm install -g typescript-language-server"
 
-#COPY ./nvim /home/dave/.config/nvim
 RUN nvim --headless "+Lazy! sync" +qa
 #RUN modular install mojo
 #ENV PATH=/home/dave/.modular/pkg/packages.modular.com_mojo/bin:$PATH
