@@ -37,9 +37,9 @@ COPY --from=neovim /nvim-install/usr /usr
 RUN git config --global user.email "3943510+phueac@users.noreply.github.com"
 RUN git config --global user.name "Dave Edmunds"
 
-RUN git clone --recurse-submodules git@github.com:phueac/dotfiles.git ~/.dotfiles
-RUN cd ~/.dotfiles
-RUN ./install
+RUN --mount=type=secret,id=github_personal_access_token,uid=1000 PAT=$(cat /run/secrets/github_personal_access_token) && git clone https://$PAT@github.com/phueac/dotfiles.git .dotfiles && cd .dotfiles && ./install
+
+# RUN cd /home/dave/.dotfiles && ./install
 
 #COPY ./nvim /home/dave/.config/nvim
 RUN nvim --headless "+Lazy! sync" +qa

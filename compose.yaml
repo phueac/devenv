@@ -3,14 +3,14 @@ services:
     build:
       context: .
       target: final
+      secrets:
+        - github_personal_access_token
     container_name: devenv
     entrypoint: /bin/bash
     ports:
       - 8888:8888
     secrets:
-      - source: github_personal_access_token
-        uid: "1000"
-        gid: "1000"
+      - github_personal_access_token
     stdin_open: true
     tty: true
     user: dave

@@ -1,3 +1,0 @@
-[submodule "submodules/dotfiles"]
-	path = submodules/dotfiles
-	url = git@github.com:phueac/dotfiles.git
